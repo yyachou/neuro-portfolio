@@ -56,12 +56,41 @@ function ContactItem({
   );
 }
 
+function MobileContactRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-[14px] border border-white/8 bg-white/[0.025] px-3 py-2.5 min-w-0">
+      <div className="mt-0.5 text-white/75 shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <div className="text-[10px] uppercase tracking-[0.12em] text-white/55">{label}</div>
+        <div className="text-[12px] text-white/92 leading-snug break-words mt-0.5">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function MobileChip({ text }: { text: string }) {
+  return (
+    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] text-white/75 tracking-[0.08em] uppercase">
+      {text}
+    </span>
+  );
+}
+
 export default function OutroSlide() {
   return (
     <div className="relative w-full h-full px-[5.2%] py-[4%] overflow-hidden">
       <VideoBackground src={VIDEO_URLS.contact} />
 
-      <div className="relative z-10 h-full grid grid-rows-[auto_auto_1fr] gap-y-[2.4%]">
+      {/* ========================= DESKTOP ========================= */}
+      <div className="hidden md:grid relative z-10 h-full grid-rows-[auto_auto_1fr] gap-y-[2.4%]">
         {/* Header */}
         <div className="flex justify-between items-center">
           <Monogram />
@@ -76,9 +105,9 @@ export default function OutroSlide() {
           </h2>
 
           <p className="text-[clamp(12px,1.05vw,18px)] opacity-90 mt-[2%] max-w-[56%] leading-[1.45]">
-            Clinician-researcher with neurosurgical training, advanced neuroscience education, and clinical trial
-            leadership experience, focused on responsible innovation in brain stimulation and translational
-            neurotechnology.
+            Clinician-researcher with neurosurgical training, advanced neuroscience education, and
+            clinical trial leadership experience, focused on responsible innovation in brain
+            stimulation and translational neurotechnology.
           </p>
         </div>
 
@@ -129,8 +158,8 @@ export default function OutroSlide() {
             <div className="mb-[clamp(10px,1vw,14px)]">
               <h3 className="text-[clamp(16px,1.45vw,24px)] font-bold">Contact</h3>
               <p className="text-[clamp(11px,0.9vw,15px)] text-white/75 mt-2 leading-snug max-w-[95%]">
-                Open to collaborations in neuromodulation trials, brain stimulation research, and translational
-                neurotechnology.
+                Open to collaborations in neuromodulation trials, brain stimulation research, and
+                translational neurotechnology.
               </p>
             </div>
 
@@ -171,6 +200,118 @@ export default function OutroSlide() {
               </div>
             </div>
           </GlassCard>
+        </div>
+      </div>
+
+      {/* ========================= MOBILE ========================= */}
+      <div className="md:hidden relative z-10 h-full flex flex-col min-h-0">
+        {/* Compact header */}
+        <div className="flex justify-between items-center shrink-0 mb-3">
+          <Monogram />
+          <span className="text-[11px] opacity-85">Page 004</span>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
+          {/* Title + intro (shortened for mobile) */}
+          <div>
+            <h2 className="text-[clamp(22px,8vw,34px)] tracking-[-0.02em] leading-[1.03] font-bold">
+              Education, Training & Collaboration
+            </h2>
+
+            <p className="text-[12px] text-white/88 leading-[1.4] mt-2">
+              Neuroscience clinician-researcher with neurosurgical training and advanced education in
+              clinical trials, brain stimulation, and translational neurotechnology.
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <MobileChip text="Neurosurgery" />
+              <MobileChip text="Clinical Trials" />
+              <MobileChip text="Brain Stimulation" />
+              <MobileChip text="Bioethics / Law" />
+            </div>
+          </div>
+
+          {/* Contact first (most important on mobile final slide) */}
+          <GlassCard className="p-4">
+            <div className="mb-3">
+              <h3 className="text-[clamp(15px,4.8vw,20px)] font-bold">Contact</h3>
+              <p className="text-[12px] text-white/78 mt-1.5 leading-[1.35]">
+                Open to collaborations in neuromodulation trials, brain stimulation research, and
+                translational neurotechnology.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <MobileContactRow
+                icon={<Phone className="w-4 h-4" strokeWidth={1.6} />}
+                label="Phone"
+                value="+33 6 95 92 08 23"
+              />
+              <MobileContactRow
+                icon={<Mail className="w-4 h-4" strokeWidth={1.6} />}
+                label="Email"
+                value="yassine.yachou@gmail.com"
+              />
+              <MobileContactRow
+                icon={<MapPin className="w-4 h-4" strokeWidth={1.6} />}
+                label="Location"
+                value="Paris, France"
+              />
+              <MobileContactRow
+                icon={<Linkedin className="w-4 h-4" strokeWidth={1.6} />}
+                label="LinkedIn"
+                value="linkedin.com/in/yassine-yachou"
+              />
+              <MobileContactRow
+                icon={<Globe className="w-4 h-4" strokeWidth={1.6} />}
+                label="Scholar"
+                value="Google Scholar Profile"
+              />
+            </div>
+          </GlassCard>
+
+          {/* Education collapsible (reduces visual load on first view) */}
+          <details className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <summary className="cursor-pointer list-none flex items-center justify-between">
+              <span className="flex items-center gap-2 font-semibold text-white/95 text-[clamp(13px,4vw,16px)]">
+                <GraduationCap className="w-4 h-4 text-white/80" strokeWidth={1.7} />
+                Education & Training
+              </span>
+              <span className="text-white/60 text-[12px]">Tap to expand</span>
+            </summary>
+
+            <div className="mt-3 space-y-2.5">
+              {educationItems.map((item) => (
+                <div
+                  key={`mobile-${item.title}-${item.org}`}
+                  className="rounded-[14px] border border-white/8 bg-white/[0.025] px-3 py-2.5"
+                >
+                  <div className="text-[12px] text-white/92 leading-snug">{item.title}</div>
+                  <div className="text-[11px] text-white/65 leading-snug mt-1">
+                    {item.org}
+                    {item.date ? ` · ${item.date}` : ''}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+
+          {/* Closing note */}
+          <GlassCard className="p-4">
+            <div className="text-[11px] uppercase tracking-[0.12em] text-white/60 mb-2">
+              Collaboration Focus
+            </div>
+            <p className="text-[12px] text-white/80 leading-[1.4]">
+              Neuromodulation trials, brain stimulation methods, and responsible translational
+              neuroscience research.
+            </p>
+          </GlassCard>
+        </div>
+
+        {/* Mobile footer */}
+        <div className="shrink-0 w-full text-center mt-2">
+          <span className="text-[11px] text-white/60">Education & Contact</span>
         </div>
       </div>
     </div>
