@@ -68,7 +68,7 @@ export default function CoverSlide() {
         {/* Main content (compact + readable) */}
         <div className="flex-1 min-h-0 flex flex-col justify-center items-center text-center px-[1%]">
           <h1 className="text-[clamp(26px,9vw,40px)] tracking-[-0.02em] leading-[1.02] font-bold max-w-[95%]">
-            Yassine Yachou
+            Yassine Yachou, MD, PhD
           </h1>
 
           <p className="text-[clamp(13px,4vw,17px)] opacity-92 mt-3 leading-[1.25] max-w-[92%]">
