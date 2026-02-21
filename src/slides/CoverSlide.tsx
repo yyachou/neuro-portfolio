@@ -2,14 +2,6 @@ import VideoBackground from '../components/VideoBackground';
 import Monogram from '../components/Monogram';
 import { VIDEO_URLS } from '../constants/profile';
 
-function TagChip({ text }: { text: string }) {
-  return (
-    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] text-white/75 tracking-[0.08em] uppercase">
-      {text}
-    </span>
-  );
-}
-
 export default function CoverSlide() {
   return (
     <div className="relative w-full h-full flex flex-col justify-between px-[5.2%] py-[4%] overflow-hidden">
