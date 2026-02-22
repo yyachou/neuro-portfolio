@@ -3,6 +3,42 @@ import Monogram from '../components/Monogram';
 import GlassCard from '../components/GlassCard';
 import { VIDEO_URLS } from '../constants/profile';
 import { Activity, Zap, ShieldPlus, Component } from 'lucide-react';
+import React from 'react';
+import VideoBackground from '../components/VideoBackground';
+import Monogram from '../components/Monogram';
+import SkillNetworkOverlay from '../components/SkillNetworkOverlay';
+import { VIDEO_URLS } from '../constants/profile';
+
+export default function ResearchSlide() {
+  return (
+    <div className="relative w-full h-full flex flex-col overflow-hidden">
+      {/* Background Video */}
+      <VideoBackground src={VIDEO_URLS.research} />
+      
+      {/* Slide Header Info */}
+      <div className="relative z-20 flex justify-between items-center w-full px-[5%] py-[3%] shrink-0">
+        <Monogram />
+        <div className="flex gap-8 text-[12px] uppercase tracking-[0.3em] font-medium opacity-50">
+          <span>Clinical Neuroscience Portfolio</span>
+          <span>Page 003</span>
+        </div>
+      </div>
+
+      {/* Main Overlay */}
+      <div className="flex-1 relative z-10">
+        <SkillNetworkOverlay />
+      </div>
+
+      {/* Footer Note */}
+      <div className="relative z-20 w-full text-center pb-6 px-10">
+        <p className="text-[clamp(10px,1vw,14px)] text-white/30 max-w-2xl mx-auto">
+          Integrating medical practice with rigorous clinical trial operations and 
+          computational modeling to advance therapeutic neuromodulation.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const focusCards = [
   {
