@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
 import GlassCard from './GlassCard';
 import {
   Activity,
@@ -9,8 +8,6 @@ import {
   Scale,
   ShieldCheck,
   Waves,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -241,7 +238,7 @@ function MetricTile({ label, value, compact }: any) {
   );
 }
 
-export default function SkillNetworkOverlayV4_1() {
+export default function SkillNetworkOverlayV3() {
   const [activeId, setActiveId] = useState<SkillId>('research');
   const active = DIMENSIONS.find((d) => d.id === activeId)!;
 
