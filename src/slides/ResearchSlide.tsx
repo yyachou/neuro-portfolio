@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import SkillNetworkOverlayV3 from '../components/SkillNetworkOverlayV3';
 import type { CSSProperties, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
