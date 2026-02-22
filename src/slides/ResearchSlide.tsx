@@ -1,13 +1,9 @@
 import VideoBackground from '../components/VideoBackground';
 import Monogram from '../components/Monogram';
 import GlassCard from '../components/GlassCard';
-import { VIDEO_URLS } from '../constants/profile';
-import { Activity, Zap, ShieldPlus, Component } from 'lucide-react';
-import React from 'react';
-import VideoBackground from '../components/VideoBackground';
-import Monogram from '../components/Monogram';
 import SkillNetworkOverlay from '../components/SkillNetworkOverlay';
 import { VIDEO_URLS } from '../constants/profile';
+import { Activity, Zap, ShieldPlus, Component } from 'lucide-react';
 
 export default function ResearchSlide() {
   return (
