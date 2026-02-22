@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import GlassCard from './GlassCard';
 import {
   Activity,
   Brain,
@@ -8,1091 +9,857 @@ import {
   Scale,
   ShieldCheck,
   Waves,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
-import GlassCard from './GlassCard';
+import type { LucideIcon } from 'lucide-react';
 
-type DimensionId =
+type SkillId =
   | 'clinical'
-  | 'trial_ops'
+  | 'trialOps'
   | 'regulatory'
   | 'research'
   | 'pedagogy'
   | 'law';
 
-type Metric = {
+type Dimension = {
+  id: SkillId;
   label: string;
-  value: string;
-  hint?: string;
-};
-
-type SkillDimension = {
-  id: DimensionId;
-  title: string;
-  shortTitle: string;
+  shortLabel: string;
   subtitle: string;
-  oneLiner: string;
-  paragraph: string;
+  miniSubtitle: string;
   icon: LucideIcon;
-  category: 'primary' | 'secondary';
+  description: string;
   contributions: string[];
-  metrics: Metric[];
-  signals: string[];
-  themes: string[];
+  domainSignals: string[];
+  researchThemes: string[];
   outputLens: string;
+  practiceMetrics: Array<{ label: string; value: string }>;
 };
 
-const DIMENSIONS: SkillDimension[] = [
+const GLOBAL_METRICS = [
+  { label: 'Citations', value: '722' },
+  { label: 'H-index', value: '4' },
+  { label: 'Publications', value: '8' },
+  { label: 'Oral comms', value: '12+' },
+] as const;
+
+const DIMENSIONS: Dimension[] = [
   {
     id: 'clinical',
-    title: 'Clinical Neuroscience',
-    shortTitle: 'Clinical',
-    subtitle: 'Functional neurosurgery and brain-circuit perspective',
-    oneLiner: 'Clinical practice grounds the portfolio in patient-centered neurocircuit reasoning.',
-    paragraph:
-      'Clinical neuroscience experience provides a practical brain-circuit lens for symptom interpretation, target rationale, and translational relevance in neuromodulation decisions.',
+    label: 'Clinical Neuroscience',
+    shortLabel: 'Clinical',
+    subtitle: 'Functional neurosurgery / brain-circuit perspective',
+    miniSubtitle: 'DBS / functional neurosurgery',
     icon: Brain,
-    category: 'primary',
+    description:
+      'Clinical neuroscience training anchors the portfolio in symptom-circuit reasoning, patient-facing decision pathways, and translational relevance for neuromodulation strategy.',
     contributions: [
-      'Functional neurosurgery / neuroanatomy perspective for target reasoning',
-      'Symptom-to-circuit framing supporting personalized stimulation strategy',
-      'Clinical decision logic integrated with research and trial workflows',
+      'Functional neuroanatomy perspective for cortical target reasoning',
+      'Clinical interpretation of symptom dimensions and treatment pathways',
+      'Translational framing from bedside constraints to protocol design',
     ],
-    metrics: [
-      { label: 'Core lens', value: 'Clinical', hint: 'practice-grounded' },
-      { label: 'Targets', value: 'DLPFC + Cerebellum' },
-      { label: 'Modalities', value: 'TMS / tDCS' },
-      { label: 'Focus', value: 'Symptoms ↔ circuits' },
-    ],
-    signals: ['Neuroanatomy', 'Target selection', 'Brain-circuit logic'],
-    themes: ['Clinical translation', 'Symptom dimensions', 'Mechanistic targeting'],
+    domainSignals: ['Brain circuits', 'Functional neuroanatomy', 'Clinical framing'],
+    researchThemes: ['DLPFC + Cerebellum', 'Neuropsychiatric stimulation', 'Target selection'],
     outputLens:
-      'Keeps all modeling and trial choices anchored to real clinical questions and actionable brain-based endpoints.',
+      'Keeps modeling and research outputs clinically interpretable and aligned with real therapeutic decision-making.',
+    practiceMetrics: [
+      { label: 'Core lens', value: 'Clinical' },
+      { label: 'Scope', value: 'Brain-circuit view' },
+    ],
   },
   {
-    id: 'trial_ops',
-    title: 'Trial Operations',
-    shortTitle: 'Trial Ops',
+    id: 'trialOps',
+    label: 'Trial Operations',
+    shortLabel: 'Trial Ops',
     subtitle: 'Neuromodulation study execution and coordination',
-    oneLiner: 'Operational execution translates protocol intent into consistent study delivery.',
-    paragraph:
-      'Trial operations experience spans study coordination, visit/session logic, protocol adherence, investigator support, and day-to-day execution in neuromodulation settings.',
+    miniSubtitle: '10+ neuromodulation studies',
     icon: Waves,
-    category: 'primary',
+    description:
+      'Operational execution spans study coordination, stimulation-session logistics, investigator alignment, and protocol adherence across neuromodulation-focused clinical research.',
     contributions: [
-      'Operational oversight of stimulation studies and session flow',
-      'Investigator / site coordination and protocol adherence support',
-      'Execution bridge from protocol design to real-world study delivery',
+      'Neuromodulation study workflow design and execution support',
+      'Site/investigator coordination and protocol adherence routines',
+      'Pragmatic translation of study logic into repeatable operations',
     ],
-    metrics: [
-      { label: 'Studies', value: '10+', hint: 'supported / supervised' },
-      { label: 'Formats', value: '5', hint: 'RCT / Obs / Nat / Qual' },
-      { label: 'Modalities', value: 'TMS / tDCS' },
-      { label: 'Scope', value: 'Neuromodulation trials' },
-    ],
-    signals: ['Study execution', 'Coordination', 'Protocol adherence'],
-    themes: ['Randomized studies', 'Naturalistic studies', 'Operational rigor'],
+    domainSignals: ['Study execution', 'Coordination', 'Protocol flow'],
+    researchThemes: ['Randomized studies', 'Observational cohorts', 'Naturalistic designs'],
     outputLens:
-      'Ensures brain stimulation protocols remain executable, reproducible, and aligned with real clinical workflows.',
+      'Transforms protocol plans into reliable study delivery, preserving consistency between scientific intent and implementation.',
+    practiceMetrics: [
+      { label: 'Studies', value: '10+' },
+      { label: 'Portfolio', value: 'Rand/Obs/Qual' },
+    ],
   },
   {
     id: 'regulatory',
-    title: 'Regulatory, GCP & Safety',
-    shortTitle: 'Regulatory',
+    label: 'Regulatory, GCP & Safety',
+    shortLabel: 'Regulatory',
     subtitle: 'Compliance-ready documentation and safety oversight',
-    oneLiner: 'Regulatory and safety systems make innovation clinically deployable.',
-    paragraph:
-      'Regulatory and compliance practice includes CPP/ANSM workflows, ICH-GCP alignment, pharmacovigilance support, and SAE monitoring structures for robust study conduct.',
+    miniSubtitle: 'ANSM / CPP / SAE monitoring',
     icon: ShieldCheck,
-    category: 'primary',
+    description:
+      'Regulatory and safety expertise supports compliant trial execution through documentation rigor, GCP alignment, pharmacovigilance awareness, and structured safety monitoring.',
     contributions: [
-      'CPP / ANSM submission support and compliance documentation',
-      'ICH-GCP-aligned trial conduct framework and oversight mindset',
-      'Pharmacovigilance / SAE monitoring support for clinical safety readiness',
+      'CPP / ANSM submission support and compliance-ready documentation',
+      'ICH-GCP aligned processes for trial conduct and oversight',
+      'Safety signal awareness, SAE/AE monitoring support, and traceability',
     ],
-    metrics: [
-      { label: 'Frameworks', value: 'ICH-GCP' },
-      { label: 'Authorities', value: 'CPP / ANSM' },
-      { label: 'Safety', value: 'PV / SAE' },
-      { label: 'Output', value: 'Compliance-ready docs' },
-    ],
-    signals: ['GCP', 'PV/SAE', 'Regulatory submissions'],
-    themes: ['Safety monitoring', 'Compliance systems', 'Clinical governance'],
+    domainSignals: ['GCP', 'Safety monitoring', 'Documentation'],
+    researchThemes: ['PV / SAE', 'Compliance frameworks', 'Trial governance'],
     outputLens:
-      'Adds the governance backbone required to move neuromodulation research toward safe and compliant implementation.',
+      'Adds operational reliability and regulatory readiness so neuromodulation programs remain scalable, auditable, and safe.',
+    practiceMetrics: [
+      { label: 'Frameworks', value: 'CPP·ANSM·GCP' },
+      { label: 'Focus', value: 'Safety + compliance' },
+    ],
   },
   {
     id: 'research',
-    title: 'Research & Modeling',
-    shortTitle: 'Modeling',
+    label: 'Research & Modeling',
+    shortLabel: 'Modeling',
     subtitle: 'Electric field modeling and translational neuroscience',
-    oneLiner: 'Research connects computational modeling, mechanisms, and clinically relevant hypotheses.',
-    paragraph:
-      'Research work links electric field modeling, target anatomy, translational neuroscience, and mechanism-informed neuromodulation hypotheses to improve therapeutic precision.',
+    miniSubtitle: 'E-field modeling (TMS/tDCS)',
     icon: FlaskConical,
-    category: 'primary',
+    description:
+      'Research connects computational modeling, stimulation target anatomy, and clinically actionable neuromodulation hypotheses across translational brain science outputs.',
     contributions: [
-      'Electric field modeling (TMS / tDCS) and personalization perspective',
-      'Depression-focused neuromodulation synthesis and mechanism framing',
-      'Translational research linking computational and clinical approaches',
+      'Electric field modeling for brain stimulation personalization (TMS/tDCS)',
+      'Depression-focused neuromodulation synthesis and mechanistic framing',
+      'Mechanism-informed trial thinking connecting computation to endpoints',
     ],
-    metrics: [
-      { label: 'Citations', value: '722' },
-      { label: 'H-index', value: '4' },
-      { label: 'Publications', value: '8' },
-      { label: 'Oral comms', value: '12+' },
-    ],
-    signals: ['E-field modeling', 'tDCS / rTMS', 'Translation'],
-    themes: [
+    domainSignals: ['E-field modeling', 'tDCS / rTMS', 'Translation'],
+    researchThemes: [
       'J Affect Disord (2025)',
       'Depression neuromodulation',
       'Schizophrenia modeling',
       'Translational brain science',
     ],
     outputLens:
-      'Brings a mechanism-informed modeling layer that strengthens protocol rationale and clinically actionable trial design.',
+      'Integrates computational evidence and clinical reasoning into a coherent neuromodulation design perspective.',
+    practiceMetrics: [
+      { label: 'Primary mode', value: 'Modeling' },
+      { label: 'Focus', value: 'Mechanism-informed' },
+    ],
   },
   {
     id: 'pedagogy',
-    title: 'Pedagogy',
-    shortTitle: 'Pedagogy',
-    subtitle: 'Investigator training and neuroscience education innovation',
-    oneLiner: 'Pedagogy improves adoption quality by making complex methods learnable.',
-    paragraph:
-      'Pedagogy contributes structured investigator training and neuroscience education innovation, improving understanding, consistency, and team readiness across study environments.',
+    label: 'Pedagogy',
+    shortLabel: 'Pedagogy',
+    subtitle: 'Neuroscience education design and investigator training',
+    miniSubtitle: 'Education + training methods',
     icon: GraduationCap,
-    category: 'secondary',
+    description:
+      'Pedagogy strengthens both neuroscience education and investigator enablement through structured teaching, multisensory learning methods, and practical training design.',
     contributions: [
-      'Investigator and team training for neuromodulation procedures',
-      'Educational innovation in anatomy / neuroscience communication',
-      'Operational knowledge transfer that improves protocol consistency',
+      'Investigator and team training for neuromodulation study conduct',
+      'Educational design using tactile/multisensory anatomy learning concepts',
+      'Communication of complex brain concepts for mixed clinical/research audiences',
     ],
-    metrics: [
-      { label: 'Role', value: 'Investigator training' },
-      { label: 'Audience', value: 'Clinicians / residents / teams' },
-      { label: 'Value', value: 'Execution readiness' },
-      { label: 'Approach', value: 'Structured teaching' },
-    ],
-    signals: ['Training', 'Knowledge transfer', 'Education design'],
-    themes: ['Team enablement', 'Procedure learning', 'Neuroscience education'],
+    domainSignals: ['Training', 'Education design', 'Knowledge transfer'],
+    researchThemes: ['Anatomy learning', 'Investigator enablement', 'Teaching innovation'],
     outputLens:
-      'Improves implementation quality by translating complex neuromodulation concepts into trainable, repeatable practice.',
+      'Improves adoption quality by making complex protocols and neuroscience concepts easier to teach, learn, and apply.',
+    practiceMetrics: [
+      { label: 'Role', value: 'Investigator training' },
+      { label: 'Mode', value: 'Applied pedagogy' },
+    ],
   },
   {
     id: 'law',
-    title: 'Law & Bioethics',
-    shortTitle: 'Law',
+    label: 'Law & Bioethics',
+    shortLabel: 'Law',
     subtitle: 'Responsible innovation and medical-law perspective',
-    oneLiner: 'Bioethics and law add a governance lens for responsible neurotechnology translation.',
-    paragraph:
-      'Medical-law and bioethics training adds governance thinking to neurotechnology innovation, risk framing, and responsible translation in clinical neuroscience and research interfaces.',
+    miniSubtitle: 'Bioethics / medical law',
     icon: Scale,
-    category: 'secondary',
+    description:
+      'Medical-law and bioethics training adds a governance lens to neurotechnology innovation, risk framing, and responsible translation in clinical neuroscience.',
     contributions: [
-      'Ethical framing for neuromodulation innovation and implementation',
+      'Ethical framing for neuromodulation innovation and clinical implementation',
       'Medical-law perspective supporting governance-aware decision making',
       'Responsible translation mindset across research and care interfaces',
     ],
-    metrics: [
-      { label: 'Master', value: '2025–26', hint: 'ongoing' },
-      { label: 'Lens', value: 'Applied governance' },
-      { label: 'Focus', value: 'Bioethics + Medical law' },
-      { label: 'Use', value: 'Risk framing' },
-    ],
-    signals: ['Bioethics', 'Medical law', 'Responsible innovation'],
-    themes: ['Governance', 'Risk framing', 'Neurotechnology ethics'],
+    domainSignals: ['Bioethics', 'Medical law', 'Responsible innovation'],
+    researchThemes: ['Governance', 'Risk framing', 'Neurotechnology ethics'],
     outputLens:
-      'Clarifies what is acceptable, safe, and responsibly scalable as neuromodulation research moves toward implementation.',
+      'Strengthens the network by clarifying what is acceptable, safe, and responsibly scalable in applied neuromodulation.',
+    practiceMetrics: [
+      { label: 'Master', value: '2025–26 ongoing' },
+      { label: 'Lens', value: 'Governance' },
+    ],
   },
 ];
 
-const PRIMARY_IDS = DIMENSIONS.filter((d) => d.category === 'primary').map((d) => d.id);
-const SECONDARY_IDS = DIMENSIONS.filter((d) => d.category === 'secondary').map((d) => d.id);
+type Point = { x: number; y: number };
 
-const ORBIT_POSITIONS: Record<
-  DimensionId,
-  { angle: number; ring: 1 | 2; xBias?: number; yBias?: number }
-> = {
-  clinical: { angle: 300, ring: 2 },
-  trial_ops: { angle: 20, ring: 2 },
-  regulatory: { angle: 120, ring: 2 },
-  research: { angle: 210, ring: 2 },
-  pedagogy: { angle: 155, ring: 1, xBias: -2 },
-  law: { angle: 335, ring: 1, xBias: 1 },
+const DESKTOP_POSITIONS: Record<SkillId, Point> = {
+  clinical: { x: 62, y: 16 },
+  law: { x: 71, y: 33 },
+  trialOps: { x: 81, y: 62 },
+  regulatory: { x: 31, y: 80 },
+  pedagogy: { x: 22, y: 59 },
+  research: { x: 23, y: 26 },
 };
 
-function polar(cx: number, cy: number, radius: number, angleDeg: number) {
-  const a = (angleDeg * Math.PI) / 180;
-  return { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
-}
+const MOBILE_POSITIONS: Record<SkillId, Point> = {
+  clinical: { x: 66, y: 18 },
+  law: { x: 73, y: 38 },
+  trialOps: { x: 78, y: 66 },
+  regulatory: { x: 31, y: 83 },
+  pedagogy: { x: 27, y: 62 },
+  research: { x: 19, y: 29 },
+};
 
-function dimById(id: DimensionId) {
-  return DIMENSIONS.find((d) => d.id === id)!;
-}
+const CORE_POINT: Point = { x: 50, y: 50 };
 
-function cn(...parts: Array<string | false | null | undefined>) {
-  return parts.filter(Boolean).join(' ');
-}
-
-function MetricCell({ metric }: { metric: Metric }) {
+function sectionTitle(label: string) {
   return (
-    <div className="rounded-[14px] border border-white/8 bg-white/[0.02] px-3 py-2.5">
-      <div className="text-[clamp(16px,1.35vw,30px)] font-bold leading-none text-white/95">
-        {metric.value}
-      </div>
-      <div className="mt-1 text-[clamp(10px,0.76vw,12px)] text-white/62">{metric.label}</div>
-      {metric.hint ? (
-        <div className="mt-0.5 text-[clamp(9px,0.72vw,11px)] text-white/45">{metric.hint}</div>
-      ) : null}
+    <div className="text-[10px] md:text-[clamp(10px,0.78vw,12px)] uppercase tracking-[0.18em] text-white/55 mb-2 md:mb-2.5">
+      {label}
     </div>
   );
 }
 
-function LeftSelectorPanel({
-  activeId,
-  onSelect,
-}: {
-  activeId: DimensionId;
-  onSelect: (id: DimensionId) => void;
-}) {
+function cx(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(' ');
+}
+
+function metricTile(item: { label: string; value: string }, compact?: boolean) {
   return (
-    <GlassCard className="h-full min-h-0 p-4 md:p-4.5 flex flex-col overflow-hidden">
-      <div className="shrink-0">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-white/55 mb-3">
-          Skill Dimensions
-        </div>
+    <div
+      key={`${item.label}-${item.value}`}
+      className={cx(
+        'rounded-[14px] border border-white/10 bg-white/[0.03]',
+        compact ? 'p-2.5' : 'p-3 md:p-3.5'
+      )}
+    >
+      <div className={cx('font-bold leading-none', compact ? 'text-[18px]' : 'text-[20px] md:text-[24px]')}>
+        {item.value}
+      </div>
+      <div className={cx('text-white/65 mt-1 leading-tight', compact ? 'text-[10px]' : 'text-[11px] md:text-[12px]')}>
+        {item.label}
+      </div>
+    </div>
+  );
+}
 
-        <div className="space-y-2.5">
-          {PRIMARY_IDS.map((id) => {
-            const item = dimById(id);
-            const Icon = item.icon;
-            const isActive = activeId === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onSelect(id)}
-                className={cn(
-                  'w-full text-left rounded-[16px] border px-3 py-2.5 transition-all duration-300',
-                  'bg-white/[0.02] border-white/8 hover:border-white/18 hover:bg-white/[0.035]',
-                  isActive && 'border-white/20 bg-white/[0.05] ring-1 ring-white/10'
-                )}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-[12px] border flex items-center justify-center shrink-0 transition-all',
-                      isActive
-                        ? 'border-[#4da6ff]/35 bg-[#0a1d36]/60 text-[#66b6ff]'
-                        : 'border-white/10 bg-white/[0.02] text-white/70'
-                    )}
-                  >
-                    <Icon size={18} strokeWidth={1.6} />
-                  </div>
+function buildConnectorPath(from: Point, to: Point) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const mx = (from.x + to.x) / 2;
+  const my = (from.y + to.y) / 2;
+  // Gentle curvature toward center for cleaner rhythm.
+  const curveX = mx - dy * 0.08;
+  const curveY = my + dx * 0.06;
+  return `M ${from.x} ${from.y} Q ${curveX} ${curveY} ${to.x} ${to.y}`;
+}
 
-                  <div className="min-w-0">
-                    <div className="text-[clamp(12px,0.98vw,16px)] font-semibold text-white/94 truncate">
-                      {item.title}
-                    </div>
-                    <div className="text-[clamp(10px,0.78vw,12px)] text-white/58 truncate">
-                      {item.subtitle}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+function PolarStage({
+  active,
+  onSelect,
+  positions,
+  mobile = false,
+}: {
+  active: Dimension;
+  onSelect: (id: SkillId) => void;
+  positions: Record<SkillId, Point>;
+  mobile?: boolean;
+}) {
+  const connectorPath = useMemo(
+    () => buildConnectorPath(positions[active.id], CORE_POINT),
+    [active.id, positions]
+  );
+
+  const chipClass =
+    'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border backdrop-blur-[18px] transition-all duration-300';
+
+  return (
+    <div className="relative w-full h-full">
+      {/* grid dots */}
+      <div className="absolute inset-0 pointer-events-none opacity-30">
+        <div className="sn41-grid absolute inset-0" />
       </div>
 
-      <div className="shrink-0 mt-4">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-white/55 mb-2.5">
-          Additional Dimensions
-        </div>
+      {/* stage svg overlays */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        {/* subtle ambient orbit */}
+        <g className="sn41-orbit-slow" opacity={mobile ? 0.16 : 0.14}>
+          <circle cx="50" cy="50" r={mobile ? 24 : 26} fill="none" stroke="white" strokeWidth="0.22" />
+          <circle
+            cx="50"
+            cy="50"
+            r={mobile ? 31 : 34}
+            fill="none"
+            stroke="white"
+            strokeWidth="0.2"
+            strokeDasharray="1.6 2.4"
+          />
+          {!mobile && (
+            <>
+              <circle cx="50" cy="50" r="19" fill="none" stroke="white" strokeWidth="0.18" />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="white"
+                strokeWidth="0.18"
+                strokeDasharray="1 2.8"
+              />
+            </>
+          )}
+        </g>
 
-        <div className="grid grid-cols-2 gap-2.5">
-          {SECONDARY_IDS.map((id) => {
-            const item = dimById(id);
-            const Icon = item.icon;
-            const isActive = activeId === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onSelect(id)}
-                className={cn(
-                  'rounded-[14px] border px-3 py-2.5 flex items-center gap-2.5 text-left transition-all',
-                  'bg-white/[0.02] border-white/8 hover:border-white/18 hover:bg-white/[0.035]',
-                  isActive && 'border-white/20 bg-white/[0.05] ring-1 ring-white/10'
+        {/* one active connector only */}
+        <path
+          d={connectorPath}
+          fill="none"
+          stroke="rgba(97, 168, 255, 0.60)"
+          strokeWidth={mobile ? 0.55 : 0.42}
+          strokeDasharray={mobile ? '3 2.4' : '2.2 2.2'}
+          className="sn41-dash-flow"
+          strokeLinecap="round"
+        />
+        <path
+          d={connectorPath}
+          fill="none"
+          stroke="rgba(97, 168, 255, 0.18)"
+          strokeWidth={mobile ? 1.2 : 0.9}
+          strokeLinecap="round"
+        />
+
+        {/* pulse dot moving to core */}
+        <circle r={mobile ? 0.7 : 0.55} fill="rgba(118,181,255,0.95)">
+          <animateMotion dur={mobile ? '2.2s' : '2.6s'} repeatCount="indefinite" path={connectorPath} />
+        </circle>
+
+        {/* core glow rings */}
+        <circle cx="50" cy="50" r={mobile ? 13.8 : 11.6} fill="rgba(0,0,0,0.54)" />
+        <circle cx="50" cy="50" r={mobile ? 13.8 : 11.6} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.32" />
+        <circle
+          cx="50"
+          cy="50"
+          r={mobile ? 17.4 : 15.2}
+          fill="none"
+          stroke="rgba(78,136,255,0.18)"
+          strokeWidth="0.24"
+          className="sn41-pulse-ring"
+        />
+      </svg>
+
+      {/* floating chips */}
+      {DIMENSIONS.map((d) => {
+        const p = positions[d.id];
+        const isActive = d.id === active.id;
+        const Icon = d.icon;
+
+        const style = {
+          left: `${p.x}%`,
+          top: `${p.y}%`,
+          animationDelay: `${(p.x + p.y) % 7 * 0.22}s`,
+        } as CSSProperties;
+
+        return (
+          <button
+            key={d.id}
+            type="button"
+            onClick={() => onSelect(d.id)}
+            style={style}
+            className={cx(
+              chipClass,
+              mobile
+                ? 'h-11 px-3.5 max-w-[42vw] min-w-[108px]'
+                : 'h-[clamp(42px,3.5vw,52px)] px-[clamp(12px,1.1vw,16px)] max-w-[220px] min-w-[140px]',
+              'sn41-chip-float',
+              isActive
+                ? 'border-[#6DB7FF]/45 bg-[linear-gradient(135deg,rgba(62,107,211,0.18),rgba(30,63,136,0.20))] shadow-[inset_0_0_0_1px_rgba(109,183,255,0.08)]'
+                : 'border-white/12 bg-white/[0.025] hover:bg-white/[0.04]'
+            )}
+            aria-pressed={isActive}
+            aria-label={`Activate ${d.label}`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <div
+                className={cx(
+                  'shrink-0 rounded-[10px] border flex items-center justify-center',
+                  mobile ? 'w-7 h-7' : 'w-8 h-8',
+                  isActive ? 'border-[#6DB7FF]/35 bg-[#58a6ff]/10' : 'border-white/10 bg-white/[0.02]'
                 )}
               >
                 <Icon
-                  size={15}
-                  className={isActive ? 'text-[#66b6ff]' : 'text-white/70'}
+                  className={cx(mobile ? 'w-4 h-4' : 'w-[17px] h-[17px]', isActive ? 'text-[#8fc6ff]' : 'text-white/70')}
                   strokeWidth={1.7}
                 />
-                <span className="text-[clamp(11px,0.9vw,15px)] font-medium text-white/92 truncate">
-                  {item.title}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-auto pt-4">
-        <div className="rounded-[16px] border border-white/8 bg-white/[0.02] p-3">
-          <div className="text-[10px] uppercase tracking-[0.16em] text-white/50 mb-1.5">
-            Research Signature
-          </div>
-          <p className="text-[clamp(10px,0.82vw,13px)] text-white/78 leading-[1.35]">
-            Mechanism-informed neuromodulation with clinically actionable trial design.
-          </p>
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-
-function CoreRadial({
-  activeId,
-  onSelect,
-}: {
-  activeId: DimensionId;
-  onSelect: (id: DimensionId) => void;
-}) {
-  const active = dimById(activeId);
-
-  const nodes = useMemo(() => {
-    const cx = 50;
-    const cy = 50;
-    return DIMENSIONS.map((d) => {
-      const def = ORBIT_POSITIONS[d.id];
-      const radius = def.ring === 2 ? 31 : 22;
-      const { x, y } = polar(cx, cy, radius, def.angle);
-      return {
-        ...d,
-        x: x + (def.xBias ?? 0),
-        y: y + (def.yBias ?? 0),
-      };
-    });
-  }, []);
-
-  const activeNode = nodes.find((n) => n.id === activeId)!;
-  const pathToCore = `M ${activeNode.x} ${activeNode.y} Q 56 48 50 50`;
-  const pathOut = `M 50 50 Q 73 48 94 50`;
-
-  return (
-    <GlassCard className="h-full min-h-0 p-4 md:p-5 relative overflow-hidden">
-      {/* subtle inner glow */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_58%_42%,rgba(88,120,255,0.12),transparent_40%),radial-gradient(circle_at_45%_58%,rgba(125,64,255,0.08),transparent_46%)]" />
-
-      <div className="relative h-full min-h-0 flex flex-col">
-        <div className="shrink-0 text-center">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-white/50">Core Network</div>
-        </div>
-
-        <div className="relative flex-1 min-h-0 mt-2">
-          {/* SVG rings + connectors */}
-          <svg
-            viewBox="0 0 100 100"
-            className="absolute inset-0 w-full h-full"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {/* grid dots */}
-            <g opacity="0.18">
-              {Array.from({ length: 11 }).map((_, yi) =>
-                Array.from({ length: 11 }).map((__, xi) => (
-                  <circle
-                    key={`${xi}-${yi}`}
-                    cx={5 + xi * 9}
-                    cy={5 + yi * 9}
-                    r="0.25"
-                    fill="white"
-                    opacity={xi === 5 && yi === 5 ? 0 : 1}
-                  />
-                ))
-              )}
-            </g>
-
-            {/* orbits */}
-            <circle cx="50" cy="50" r="16" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.4" />
-            <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.35" />
-            <circle cx="50" cy="50" r="31" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.35" />
-            <circle
-              cx="50"
-              cy="50"
-              r="36.5"
-              fill="none"
-              stroke="rgba(255,255,255,0.08)"
-              strokeDasharray="1.4 1.8"
-              strokeWidth="0.3"
-              className="snv4-rotate-slow"
-              style={{ transformOrigin: '50px 50px' }}
-            />
-
-            {/* faint ambient paths */}
-            <path
-              d="M14 68 C 25 64, 30 58, 39 54"
-              fill="none"
-              stroke="rgba(99,173,255,0.18)"
-              strokeWidth="0.4"
-              strokeDasharray="1.5 2"
-              className="snv4-dash-ambient"
-            />
-            <path
-              d="M50 50 C 64 35, 78 32, 87 20"
-              fill="none"
-              stroke="rgba(255,255,255,0.10)"
-              strokeWidth="0.35"
-              strokeDasharray="1.2 2"
-              className="snv4-dash-ambient"
-              style={{ animationDelay: '1.2s' }}
-            />
-
-            {/* active connectors */}
-            <path
-              d={pathToCore}
-              fill="none"
-              stroke="rgba(80,170,255,0.65)"
-              strokeWidth="0.55"
-              strokeLinecap="round"
-              strokeDasharray="2 2"
-              className="snv4-dash-active"
-            />
-            <path
-              d={pathOut}
-              fill="none"
-              stroke="rgba(255,255,255,0.20)"
-              strokeWidth="0.45"
-              strokeLinecap="round"
-              strokeDasharray="1.8 2.2"
-              className="snv4-dash-active"
-              style={{ animationDelay: '0.6s' }}
-            />
-
-            {/* core pulse rings */}
-            <circle
-              cx="50"
-              cy="50"
-              r="16.8"
-              fill="none"
-              stroke="rgba(103,177,255,0.25)"
-              strokeWidth="0.4"
-              className="snv4-pulse-ring"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="16.8"
-              fill="none"
-              stroke="rgba(103,177,255,0.18)"
-              strokeWidth="0.35"
-              className="snv4-pulse-ring"
-              style={{ animationDelay: '1.7s' }}
-            />
-
-            {/* active node ping */}
-            <circle
-              cx={activeNode.x}
-              cy={activeNode.y}
-              r="2.2"
-              fill="rgba(80,170,255,0.15)"
-              stroke="rgba(103,177,255,0.7)"
-              strokeWidth="0.35"
-              className="snv4-pulse-node"
-            />
-          </svg>
-
-          {/* center core button */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="relative w-[clamp(150px,18vw,250px)] aspect-square rounded-full border border-white/10 bg-black/45 backdrop-blur-[10px] flex flex-col items-center justify-center">
-              <div className="absolute inset-[6%] rounded-full border border-white/8" />
-              <div className="absolute inset-[12%] rounded-full border border-[#66b6ff]/15" />
-
-              <Activity
-                className="text-white/90 mb-1.5 snv4-core-float"
-                size={28}
-                strokeWidth={1.9}
-              />
-              <div className="text-[clamp(11px,1vw,16px)] font-bold tracking-[0.16em] text-[#73b8ff] uppercase">
-                Core
               </div>
-              <div className="mt-1 text-[clamp(9px,0.75vw,12px)] text-white/55 text-center px-4 leading-tight">
-                Multidimensional practice view
-              </div>
-            </div>
-          </div>
-
-          {/* orbit node labels/buttons */}
-          {nodes.map((n) => {
-            const Icon = n.icon;
-            const isActive = n.id === activeId;
-
-            const isSecondary = n.category === 'secondary';
-            const width = isSecondary ? 'w-[110px]' : 'w-[132px]';
-            const labelClass = isSecondary
-              ? 'text-[11px]'
-              : 'text-[11.5px]';
-            const top = `${n.y}%`;
-            const left = `${n.x}%`;
-
-            return (
-              <button
-                key={n.id}
-                type="button"
-                onClick={() => onSelect(n.id)}
-                className={cn(
-                  'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-2.5 py-1.5',
-                  'backdrop-blur-[10px] transition-all duration-300 text-left',
-                  width,
-                  isActive
-                    ? 'border-[#66b6ff]/35 bg-[#091933]/55 shadow-[0_0_0_1px_rgba(102,182,255,0.1)]'
-                    : 'border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/[0.03]'
+              <span
+                className={cx(
+                  'truncate text-left font-medium leading-none',
+                  mobile ? 'text-[12px]' : 'text-[13px] md:text-[14px]',
+                  isActive ? 'text-white/95' : 'text-white/85'
                 )}
-                style={{ top, left }}
+                title={d.label}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Icon
-                    size={13}
-                    className={isActive ? 'text-[#66b6ff]' : 'text-white/65'}
-                    strokeWidth={1.8}
-                  />
-                  <span
-                    className={cn(
-                      'font-medium truncate',
-                      labelClass,
-                      isActive ? 'text-white/96' : 'text-white/78'
-                    )}
-                  >
-                    {n.shortTitle}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="shrink-0 text-center mt-1">
-          <div className="text-[clamp(14px,1.2vw,22px)] font-semibold text-white/95">
-            {active.title}
-          </div>
-          <div className="text-[clamp(10px,0.85vw,13px)] text-white/62">
-            {active.subtitle}
-          </div>
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-
-function UnifiedDetailsPanel({ active }: { active: SkillDimension }) {
-  const Icon = active.icon;
-
-  return (
-    <GlassCard className="h-full min-h-0 p-4 md:p-5 overflow-hidden">
-      <div className="h-full min-h-0 flex flex-col">
-        {/* Header */}
-        <div className="shrink-0">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-[12px] border border-white/10 bg-white/[0.02] flex items-center justify-center text-white/80">
-              <Icon size={18} strokeWidth={1.6} />
-            </div>
-
-            <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">
-                Active Dimension
-              </div>
-              <h3 className="text-[clamp(20px,1.8vw,34px)] font-bold leading-[1.05] text-white/96 mt-0.5">
-                {active.title}
-              </h3>
-              <p className="text-[clamp(11px,0.9vw,14px)] text-white/68 mt-1">
-                {active.subtitle}
-              </p>
-            </div>
-          </div>
-
-          <p className="mt-3.5 text-[clamp(12px,0.95vw,16px)] text-white/84 leading-[1.4]">
-            {active.paragraph}
-          </p>
-        </div>
-
-        <div className="w-full h-px bg-white/10 my-4 shrink-0" />
-
-        {/* Main info blocks */}
-        <div className="min-h-0 flex flex-col gap-4">
-          <div className="grid grid-cols-[1.05fr_0.95fr] gap-4">
-            {/* Contributions */}
-            <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-white/55 mb-2">
-                Key Contributions
-              </div>
-              <div className="space-y-2.5">
-                {active.contributions.slice(0, 3).map((item, idx) => (
-                  <div
-                    key={`${active.id}-c-${idx}`}
-                    className="rounded-[14px] border border-white/8 bg-white/[0.02] px-3 py-2.5"
-                  >
-                    <div className="text-[clamp(11px,0.9vw,14px)] leading-[1.35] text-white/88">
-                      • {item}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Grouped metrics */}
-            <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-white/55 mb-2">
-                Grouped Metrics
-              </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                {active.metrics.slice(0, 4).map((metric) => (
-                  <MetricCell key={`${active.id}-${metric.label}`} metric={metric} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-[1.05fr_0.95fr] gap-4 min-h-0">
-            <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-white/55 mb-2">
-                Domain Signals
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {active.signals.map((s) => (
-                  <span
-                    key={`${active.id}-signal-${s}`}
-                    className="rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-[clamp(10px,0.8vw,12px)] text-white/78"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-white/55 mb-2">
-                Research Themes
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {active.themes.map((t) => (
-                  <span
-                    key={`${active.id}-theme-${t}`}
-                    className="rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-[clamp(10px,0.8vw,12px)] text-white/78"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[16px] border border-white/8 bg-white/[0.02] px-3.5 py-3">
-            <div className="text-[10px] uppercase tracking-[0.16em] text-white/50 mb-1.5">
-              Output Lens
-            </div>
-            <p className="text-[clamp(11px,0.9vw,14px)] text-white/84 leading-[1.35]">
-              {active.outputLens}
-            </p>
-          </div>
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-
-function MobileRadialMini({
-  activeId,
-  onSelect,
-}: {
-  activeId: DimensionId;
-  onSelect: (id: DimensionId) => void;
-}) {
-  const nodes = useMemo(() => {
-    const cx = 50;
-    const cy = 50;
-    return DIMENSIONS.map((d) => {
-      const def = ORBIT_POSITIONS[d.id];
-      const r = def.ring === 2 ? 32 : 22;
-      const p = polar(cx, cy, r, def.angle);
-      return { ...d, x: p.x, y: p.y };
-    });
-  }, []);
-
-  const active = dimById(activeId);
-  const activeNode = nodes.find((n) => n.id === activeId)!;
-
-  return (
-    <GlassCard className="relative p-3 overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_45%,rgba(82,146,255,0.12),transparent_48%)]" />
-      <div className="relative">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Core network</div>
-          <div className="text-[10px] text-white/55">Tap nodes / chips</div>
-        </div>
-
-        <div className="relative h-[180px]">
-          <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
-            <circle cx="50" cy="50" r="16" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />
-            <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.45" />
-            <circle cx="50" cy="50" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.45" />
-            <circle
-              cx="50"
-              cy="50"
-              r="36"
-              fill="none"
-              stroke="rgba(255,255,255,0.08)"
-              strokeDasharray="1.4 1.8"
-              strokeWidth="0.35"
-              className="snv4-rotate-slow"
-              style={{ transformOrigin: '50px 50px' }}
-            />
-
-            {/* active connector */}
-            <path
-              d={`M ${activeNode.x} ${activeNode.y} Q 56 48 50 50`}
-              fill="none"
-              stroke="rgba(80,170,255,0.75)"
-              strokeWidth="0.75"
-              strokeLinecap="round"
-              strokeDasharray="2 2"
-              className="snv4-dash-active"
-            />
-            <circle
-              cx={activeNode.x}
-              cy={activeNode.y}
-              r="2.5"
-              fill="rgba(80,170,255,0.18)"
-              stroke="rgba(103,177,255,0.8)"
-              strokeWidth="0.45"
-              className="snv4-pulse-node"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="16.5"
-              fill="none"
-              stroke="rgba(103,177,255,0.24)"
-              strokeWidth="0.5"
-              className="snv4-pulse-ring"
-            />
-          </svg>
-
-          {/* node tap targets */}
-          {nodes.map((n) => {
-            const isActive = n.id === activeId;
-            const Icon = n.icon;
-            return (
-              <button
-                key={n.id}
-                type="button"
-                onClick={() => onSelect(n.id)}
-                className={cn(
-                  'absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border backdrop-blur-[8px]',
-                  'flex items-center justify-center transition-all duration-300',
-                  isActive
-                    ? 'border-[#66b6ff]/40 bg-[#0a1d36]/70 text-[#66b6ff] scale-110'
-                    : 'border-white/12 bg-black/35 text-white/70'
-                )}
-                style={{ left: `${n.x}%`, top: `${n.y}%` }}
-                aria-label={n.title}
-              >
-                <Icon size={14} strokeWidth={1.8} />
-              </button>
-            );
-          })}
-
-          {/* core */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[86px] h-[86px] rounded-full border border-white/10 bg-black/45 backdrop-blur-[8px] flex flex-col items-center justify-center">
-              <Activity size={18} className="text-white/90 mb-1 snv4-core-float" strokeWidth={1.9} />
-              <span className="text-[10px] uppercase tracking-[0.14em] text-[#73b8ff] font-semibold">
-                Core
+                {mobile ? d.shortLabel : d.label}
               </span>
             </div>
+          </button>
+        );
+      })}
+
+      {/* center core */}
+      <div
+        className={cx(
+          'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 flex flex-col items-center justify-center text-center',
+          mobile
+            ? 'w-[34vw] h-[34vw] min-w-[136px] min-h-[136px] max-w-[176px] max-h-[176px]'
+            : 'w-[clamp(164px,19vw,220px)] h-[clamp(164px,19vw,220px)]'
+        )}
+      >
+        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(110,132,255,0.10),transparent_55%),radial-gradient(circle_at_65%_70%,rgba(69,28,161,0.12),transparent_60%)]" />
+        <div className="relative z-10 flex flex-col items-center">
+          <Activity className={cx(mobile ? 'w-7 h-7 mb-1.5' : 'w-8 h-8 mb-2', 'text-white/85')} strokeWidth={1.8} />
+          <div
+            className={cx(
+              'font-bold tracking-[0.12em] text-[#78b9ff]',
+              mobile ? 'text-[11px]' : 'text-[13px] md:text-[14px]'
+            )}
+          >
+            CORE
+          </div>
+          <div className={cx('text-white/60 mt-1 leading-tight', mobile ? 'text-[11px]' : 'text-[12px]')}>
+            {mobile ? 'Practice view' : 'Multidimensional practice view'}
+          </div>
+        </div>
+      </div>
+
+      {/* active caption below core */}
+      <div
+        className={cx(
+          'absolute left-1/2 -translate-x-1/2 text-center px-2',
+          mobile ? 'bottom-[8%]' : 'bottom-[7%]'
+        )}
+      >
+        <div className={cx('font-semibold text-white/92 leading-tight', mobile ? 'text-[14px]' : 'text-[18px]')}>
+          {active.label}
+        </div>
+        <div className={cx('text-white/60 leading-tight', mobile ? 'text-[11px] mt-0.5' : 'text-[12px] mt-1')}>
+          {active.subtitle}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SelectorItem({
+  item,
+  activeId,
+  onSelect,
+  compact = false,
+}: {
+  item: Dimension;
+  activeId: SkillId;
+  onSelect: (id: SkillId) => void;
+  compact?: boolean;
+}) {
+  const Icon = item.icon;
+  const isActive = item.id === activeId;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(item.id)}
+      className={cx(
+        'w-full text-left rounded-[16px] border transition-all duration-200',
+        compact ? 'px-3 py-2.5' : 'px-3.5 py-3',
+        isActive
+          ? 'border-[#6DB7FF]/40 bg-[linear-gradient(180deg,rgba(74,132,255,0.11),rgba(59,80,158,0.07))]'
+          : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.035]'
+      )}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div
+          className={cx(
+            'rounded-[12px] border flex items-center justify-center shrink-0',
+            compact ? 'w-8 h-8' : 'w-9 h-9',
+            isActive ? 'border-[#6DB7FF]/35 bg-[#58a6ff]/10' : 'border-white/10 bg-white/[0.02]'
+          )}
+        >
+          <Icon className={cx(compact ? 'w-4 h-4' : 'w-[17px] h-[17px]', isActive ? 'text-[#8fc6ff]' : 'text-white/70')} strokeWidth={1.7} />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div
+            className={cx(
+              'font-semibold truncate leading-tight',
+              compact ? 'text-[13px]' : 'text-[13px] md:text-[14px]',
+              isActive ? 'text-white/96' : 'text-white/90'
+            )}
+            title={item.label}
+          >
+            {item.label}
+          </div>
+          {!compact && (
+            <div className="text-[11px] text-white/58 truncate mt-0.5" title={item.subtitle}>
+              {item.subtitle}
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function UnifiedDetailsPanel({ active }: { active: Dimension }) {
+  return (
+    <GlassCard className="h-full min-h-0 p-[clamp(14px,1.15vw,18px)] flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="shrink-0">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-[12px] border border-white/10 bg-white/[0.03] flex items-center justify-center shrink-0">
+            <active.icon className="w-[18px] h-[18px] text-white/75" strokeWidth={1.7} />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.16em] text-white/55 mb-0.5">Active dimension</div>
+            <h3 className="text-[clamp(18px,1.8vw,28px)] font-bold leading-[1.06]">{active.label}</h3>
+            <div className="text-[clamp(11px,0.9vw,14px)] text-white/70 mt-1">{active.subtitle}</div>
           </div>
         </div>
 
-        <div className="text-center">
-          <div className="text-[15px] font-semibold text-white/95">{active.title}</div>
-          <div className="text-[11px] text-white/65 leading-snug mt-0.5">{active.subtitle}</div>
+        <p className="text-[clamp(11px,0.92vw,14px)] text-white/86 leading-[1.4] mt-3">
+          {active.description}
+        </p>
+      </div>
+
+      {/* Organized body */}
+      <div className="mt-4 flex-1 min-h-0 grid grid-rows-[auto_auto_1fr] gap-3">
+        {/* Row 1: contributions + grouped metrics */}
+        <div className="grid grid-cols-[1.1fr_0.9fr] gap-3">
+          <div className="rounded-[16px] border border-white/10 bg-white/[0.02] p-3">
+            {sectionTitle('Key contributions')}
+            <div className="space-y-2">
+              {active.contributions.map((line) => (
+                <div
+                  key={line}
+                  className="rounded-[12px] border border-white/8 bg-white/[0.02] px-3 py-2.5 text-[12px] md:text-[13px] text-white/88 leading-[1.28]"
+                >
+                  • {line}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.02] p-3">
+              {sectionTitle('Scientific metrics')}
+              <div className="grid grid-cols-2 gap-2">
+                {GLOBAL_METRICS.map((m) => metricTile(m))}
+              </div>
+            </div>
+
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.02] p-3">
+              {sectionTitle('Grouped metrics')}
+              <div className="grid grid-cols-2 gap-2">
+                {active.practiceMetrics.map((m) => metricTile(m, true))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: chips */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-[16px] border border-white/10 bg-white/[0.02] p-3">
+            {sectionTitle('Domain signals')}
+            <div className="flex flex-wrap gap-2">
+              {active.domainSignals.map((signal) => (
+                <span
+                  key={signal}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/78"
+                >
+                  {signal}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[16px] border border-white/10 bg-white/[0.02] p-3">
+            {sectionTitle('Research themes')}
+            <div className="flex flex-wrap gap-2">
+              {active.researchThemes.map((theme) => (
+                <span
+                  key={theme}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/78"
+                >
+                  {theme}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Row 3: output lens */}
+        <div className="min-h-0 rounded-[16px] border border-white/10 bg-white/[0.02] p-3 flex flex-col">
+          {sectionTitle('Output lens')}
+          <div className="text-[12px] md:text-[13px] text-white/88 leading-[1.35] max-w-[95%]">
+            {active.outputLens}
+          </div>
+
+          <div className="mt-auto pt-3 opacity-45">
+            <svg viewBox="0 0 180 18" className="w-full h-auto">
+              <path
+                d="M0 12 C18 12, 22 6, 34 7 C44 8, 50 14, 62 11 C72 8, 79 6, 92 8 C108 10, 116 14, 132 10 C148 6, 160 10, 180 8"
+                fill="none"
+                stroke="white"
+                strokeWidth="1"
+              />
+            </svg>
+          </div>
         </div>
       </div>
     </GlassCard>
   );
 }
 
-function MobileCollapseBlock({
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
-  return (
-    <details
-      open={defaultOpen}
-      className="rounded-[16px] border border-white/10 bg-white/[0.03] p-3 overflow-hidden"
-    >
-      <summary className="list-none cursor-pointer flex items-center justify-between gap-2">
-        <span className="text-[13px] font-semibold text-white/95">{title}</span>
-        <span className="text-[10px] text-white/55">tap</span>
-      </summary>
-      <div className="mt-3">{children}</div>
-    </details>
+export default function SkillNetworkOverlayV4_1() {
+  const [activeId, setActiveId] = useState<SkillId>('research');
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+
+  const active = DIMENSIONS.find((d) => d.id === activeId) ?? DIMENSIONS[0];
+  const primary = useMemo(
+    () => DIMENSIONS.filter((d) => ['clinical', 'trialOps', 'regulatory', 'research'].includes(d.id)),
+    []
   );
-}
-
-function MobileView({
-  activeId,
-  onSelect,
-}: {
-  activeId: DimensionId;
-  onSelect: (id: DimensionId) => void;
-}) {
-  const active = dimById(activeId);
-
-  return (
-    <div className="md:hidden h-full min-h-0 flex flex-col">
-      <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
-        {/* Selector chips */}
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {DIMENSIONS.map((d) => {
-            const Icon = d.icon;
-            const isActive = d.id === activeId;
-            return (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => onSelect(d.id)}
-                className={cn(
-                  'shrink-0 rounded-full border px-3 py-2 flex items-center gap-2 backdrop-blur-[10px] transition-all',
-                  isActive
-                    ? 'border-[#66b6ff]/35 bg-[#0a1d36]/65'
-                    : 'border-white/10 bg-white/[0.03]'
-                )}
-              >
-                <Icon
-                  size={14}
-                  className={isActive ? 'text-[#66b6ff]' : 'text-white/70'}
-                  strokeWidth={1.8}
-                />
-                <span
-                  className={cn(
-                    'text-[11px] whitespace-nowrap',
-                    isActive ? 'text-white/95' : 'text-white/78'
-                  )}
-                >
-                  {d.shortTitle}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Mini radial */}
-        <MobileRadialMini activeId={activeId} onSelect={onSelect} />
-
-        {/* Active summary */}
-        <GlassCard className="p-3">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-[11px] border border-white/10 bg-white/[0.03] flex items-center justify-center shrink-0">
-              <active.icon size={16} className="text-white/85" strokeWidth={1.7} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">
-                Active Dimension
-              </div>
-              <div className="text-[17px] font-semibold leading-tight text-white/95 mt-0.5">
-                {active.title}
-              </div>
-              <div className="text-[11px] text-white/65 leading-snug mt-1">
-                {active.subtitle}
-              </div>
-            </div>
-          </div>
-          <p className="mt-3 text-[12px] text-white/82 leading-[1.35]">{active.oneLiner}</p>
-        </GlassCard>
-
-        {/* Collapsible blocks */}
-        <MobileCollapseBlock title="Key Contributions" defaultOpen>
-          <div className="space-y-2">
-            {active.contributions.map((c, idx) => (
-              <div
-                key={`${active.id}-mc-${idx}`}
-                className="rounded-[12px] border border-white/8 bg-white/[0.02] p-2.5"
-              >
-                <p className="text-[12px] text-white/85 leading-[1.3]">• {c}</p>
-              </div>
-            ))}
-          </div>
-        </MobileCollapseBlock>
-
-        <MobileCollapseBlock title="Grouped Metrics" defaultOpen={active.id === 'research'}>
-          <div className="grid grid-cols-2 gap-2">
-            {active.metrics.slice(0, 4).map((m) => (
-              <div
-                key={`${active.id}-mm-${m.label}`}
-                className="rounded-[12px] border border-white/8 bg-white/[0.02] p-2.5"
-              >
-                <div className="text-[18px] font-bold leading-none text-white/95">{m.value}</div>
-                <div className="mt-1 text-[10px] text-white/62">{m.label}</div>
-                {m.hint ? <div className="text-[9px] text-white/45 mt-0.5">{m.hint}</div> : null}
-              </div>
-            ))}
-          </div>
-        </MobileCollapseBlock>
-
-        <MobileCollapseBlock title="Signals, Themes & Output Lens">
-          <div className="space-y-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.14em] text-white/55 mb-1.5">
-                Domain Signals
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {active.signals.map((s) => (
-                  <span
-                    key={`${active.id}-ms-${s}`}
-                    className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[10px] text-white/78"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.14em] text-white/55 mb-1.5">
-                Themes
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {active.themes.map((t) => (
-                  <span
-                    key={`${active.id}-mt-${t}`}
-                    className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[10px] text-white/78"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[12px] border border-white/8 bg-white/[0.02] p-2.5">
-              <div className="text-[10px] uppercase tracking-[0.14em] text-white/55 mb-1">
-                Output Lens
-              </div>
-              <p className="text-[12px] text-white/84 leading-[1.3]">{active.outputLens}</p>
-            </div>
-          </div>
-        </MobileCollapseBlock>
-
-        <div className="pb-1">
-          <GlassCard className="p-3">
-            <div className="text-[10px] uppercase tracking-[0.16em] text-white/50 mb-1">
-              Research Signature
-            </div>
-            <p className="text-[12px] text-white/80 leading-[1.3]">
-              Mechanism-informed neuromodulation with clinically actionable trial design.
-            </p>
-          </GlassCard>
-        </div>
-      </div>
-    </div>
+  const secondary = useMemo(
+    () => DIMENSIONS.filter((d) => ['pedagogy', 'law'].includes(d.id)),
+    []
   );
-}
-
-function DesktopView({
-  activeId,
-  onSelect,
-}: {
-  activeId: DimensionId;
-  onSelect: (id: DimensionId) => void;
-}) {
-  const active = dimById(activeId);
 
   return (
-    <div className="hidden md:grid h-full min-h-0 grid-cols-[300px_minmax(360px,1fr)_560px] gap-5 lg:gap-6 items-stretch">
-      <LeftSelectorPanel activeId={activeId} onSelect={onSelect} />
-      <CoreRadial activeId={activeId} onSelect={onSelect} />
-      <UnifiedDetailsPanel active={active} />
-    </div>
-  );
-}
-
-export default function SkillNetworkOverlayV4() {
-  const [activeId, setActiveId] = useState<DimensionId>('research');
-
-  return (
-    <div className="relative h-full min-h-0">
+    <div className="relative w-full h-full min-h-0">
+      {/* Scoped animation styles */}
       <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .snv4-dash-active {
+        .sn41-grid{
+          background-image:
+            radial-gradient(circle at center, rgba(255,255,255,0.22) 1px, transparent 1.35px);
+          background-size: 8% 12%;
+          background-position: center;
+          mask-image: radial-gradient(circle at center, black 48%, rgba(0,0,0,0.55) 78%, transparent 100%);
+          -webkit-mask-image: radial-gradient(circle at center, black 48%, rgba(0,0,0,0.55) 78%, transparent 100%);
+        }
+        .sn41-dash-flow{
           stroke-dashoffset: 0;
-          animation: snv4Dash 3.2s linear infinite;
+          animation: sn41Dash 8s linear infinite;
         }
-        .snv4-dash-ambient {
-          animation: snv4Dash 6.4s linear infinite;
+        .sn41-orbit-slow{
+          transform-origin: 50% 50%;
+          animation: sn41Orbit 28s linear infinite;
         }
-        .snv4-pulse-ring {
-          transform-origin: center;
-          animation: snv4PulseRing 3.4s ease-out infinite;
+        .sn41-pulse-ring{
+          transform-origin: 50% 50%;
+          animation: sn41Pulse 2.8s ease-in-out infinite;
         }
-        .snv4-pulse-node {
-          transform-origin: center;
-          animation: snv4PulseNode 2.2s ease-in-out infinite;
+        .sn41-chip-float{
+          animation: sn41Float 5.8s ease-in-out infinite;
         }
-        .snv4-core-float {
-          animation: snv4Float 4.2s ease-in-out infinite;
-        }
-        .snv4-rotate-slow {
-          animation: snv4Rotate 24s linear infinite;
-          transform-box: fill-box;
-          transform-origin: center;
-        }
-
-        @keyframes snv4Dash {
+        @keyframes sn41Dash{
           from { stroke-dashoffset: 0; }
-          to   { stroke-dashoffset: -18; }
+          to { stroke-dashoffset: -120; }
         }
-        @keyframes snv4PulseRing {
-          0%   { opacity: 0.65; transform: scale(1); }
-          70%  { opacity: 0.05; transform: scale(1.14); }
-          100% { opacity: 0; transform: scale(1.18); }
-        }
-        @keyframes snv4PulseNode {
-          0%,100% { opacity: 0.85; transform: scale(1); }
-          50%     { opacity: 1; transform: scale(1.18); }
-        }
-        @keyframes snv4Float {
-          0%,100% { transform: translateY(0px); opacity: 0.92; }
-          50%     { transform: translateY(-3px); opacity: 1; }
-        }
-        @keyframes snv4Rotate {
+        @keyframes sn41Orbit{
           from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
+          to { transform: rotate(360deg); }
         }
-
-        @media (prefers-reduced-motion: reduce) {
-          .snv4-dash-active,
-          .snv4-dash-ambient,
-          .snv4-pulse-ring,
-          .snv4-pulse-node,
-          .snv4-core-float,
-          .snv4-rotate-slow {
-            animation: none !important;
-          }
+        @keyframes sn41Pulse{
+          0%,100% { opacity: 0.28; transform: scale(0.98); }
+          50% { opacity: 0.7; transform: scale(1.03); }
+        }
+        @keyframes sn41Float{
+          0%,100% { transform: translate(-50%, -50%) translateY(0px); }
+          50% { transform: translate(-50%, -50%) translateY(-2px); }
         }
       `}</style>
 
-      {/* Desktop organized 3-zone layout */}
-      <DesktopView activeId={activeId} onSelect={setActiveId} />
+      {/* DESKTOP / TABLET */}
+      <div className="hidden md:grid h-full min-h-0 grid-cols-[minmax(260px,0.92fr)_minmax(340px,1.02fr)_minmax(420px,1.16fr)] gap-[clamp(12px,1.15vw,18px)]">
+        {/* Left compact selector panel */}
+        <GlassCard className="h-full min-h-0 p-[clamp(12px,1vw,16px)] flex flex-col overflow-hidden">
+          <div className="shrink-0">
+            <div className="text-[clamp(10px,0.8vw,12px)] uppercase tracking-[0.18em] text-white/55 mb-3">
+              Skill dimensions
+            </div>
 
-      {/* Mobile-first collapse behavior */}
-      <MobileView activeId={activeId} onSelect={setActiveId} />
+            <div className="space-y-2">
+              {primary.map((d) => (
+                <SelectorItem key={d.id} item={d} activeId={activeId} onSelect={setActiveId} />
+              ))}
+            </div>
+
+            <div className="text-[clamp(10px,0.8vw,12px)] uppercase tracking-[0.18em] text-white/55 mt-4 mb-2">
+              Additional dimensions
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {secondary.map((d) => (
+                <SelectorItem key={d.id} item={d} activeId={activeId} onSelect={setActiveId} compact />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-auto pt-3">
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.02] p-3">
+              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55 mb-1.5">
+                Research signature
+              </div>
+              <p className="text-[12px] text-white/85 leading-[1.32]">
+                Mechanism-informed neuromodulation with clinically actionable trial design.
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Center bigger core radial */}
+        <GlassCard className="h-full min-h-0 p-[clamp(10px,0.9vw,14px)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_52%_50%,rgba(62,97,210,0.07),transparent_58%),radial-gradient(circle_at_34%_20%,rgba(168,152,255,0.05),transparent_44%)] pointer-events-none" />
+          <div className="relative h-full min-h-0">
+            <PolarStage active={active} onSelect={setActiveId} positions={DESKTOP_POSITIONS} />
+          </div>
+        </GlassCard>
+
+        {/* Right unified details panel */}
+        <UnifiedDetailsPanel active={active} />
+      </div>
+
+      {/* MOBILE */}
+      <div className="md:hidden h-full min-h-0 flex flex-col">
+        {/* Mobile radial hero (clean + phone-friendly) */}
+        <div className="shrink-0">
+          <GlassCard className="p-3 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(115,134,255,0.14),transparent_54%),radial-gradient(circle_at_78%_36%,rgba(133,75,255,0.12),transparent_48%)] pointer-events-none" />
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <div className="text-[10px] uppercase tracking-[0.16em] text-white/60">Skill network</div>
+                <div className="rounded-full border border-[#6DB7FF]/25 bg-[#58a6ff]/8 px-2.5 py-1 text-[10px] text-[#9fd0ff]">
+                  Active · {active.shortLabel}
+                </div>
+              </div>
+
+              <div className="relative w-full aspect-square max-h-[43vh]">
+                <PolarStage active={active} onSelect={setActiveId} positions={MOBILE_POSITIONS} mobile />
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Bottom sheet / collapsible details (preserved mobile-first behavior) */}
+        <div className="mt-3 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
+          {/* Active summary + toggle */}
+          <GlassCard className="p-3">
+            <button
+              type="button"
+              onClick={() => setMobileExpanded((v) => !v)}
+              className="w-full text-left"
+              aria-expanded={mobileExpanded}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-[12px] border border-white/10 bg-white/[0.03] flex items-center justify-center shrink-0">
+                  <active.icon className="w-[17px] h-[17px] text-white/75" strokeWidth={1.7} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Active dimension</div>
+                  <div className="text-[17px] font-semibold leading-tight text-white/95">{active.label}</div>
+                  <div className="text-[12px] text-white/65 mt-0.5 leading-snug">{active.miniSubtitle}</div>
+                </div>
+
+                <div className="shrink-0 text-white/65 mt-1">
+                  {mobileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
+              </div>
+            </button>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {GLOBAL_METRICS.map((m) => metricTile(m, true))}
+            </div>
+
+            {mobileExpanded && (
+              <div className="mt-3 space-y-3">
+                <div className="rounded-[14px] border border-white/10 bg-white/[0.02] p-3">
+                  {sectionTitle('About this dimension')}
+                  <p className="text-[12px] text-white/86 leading-[1.35]">{active.description}</p>
+                </div>
+
+                <details className="rounded-[14px] border border-white/10 bg-white/[0.02] p-3" open>
+                  <summary className="list-none cursor-pointer flex items-center justify-between">
+                    <span className="text-[13px] font-medium text-white/92">Key contributions</span>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/55">tap</span>
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    {active.contributions.map((line) => (
+                      <div
+                        key={line}
+                        className="rounded-[12px] border border-white/8 bg-white/[0.02] px-3 py-2 text-[12px] text-white/86 leading-[1.28]"
+                      >
+                        • {line}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+
+                <details className="rounded-[14px] border border-white/10 bg-white/[0.02] p-3">
+                  <summary className="list-none cursor-pointer flex items-center justify-between">
+                    <span className="text-[13px] font-medium text-white/92">Signals & themes</span>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/55">tap</span>
+                  </summary>
+                  <div className="mt-2 space-y-3">
+                    <div>
+                      {sectionTitle('Domain signals')}
+                      <div className="flex flex-wrap gap-2">
+                        {active.domainSignals.map((signal) => (
+                          <span
+                            key={signal}
+                            className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-white/78"
+                          >
+                            {signal}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      {sectionTitle('Research themes')}
+                      <div className="flex flex-wrap gap-2">
+                        {active.researchThemes.map((theme) => (
+                          <span
+                            key={theme}
+                            className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-white/78"
+                          >
+                            {theme}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details className="rounded-[14px] border border-white/10 bg-white/[0.02] p-3">
+                  <summary className="list-none cursor-pointer flex items-center justify-between">
+                    <span className="text-[13px] font-medium text-white/92">Practice lens</span>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/55">tap</span>
+                  </summary>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {active.practiceMetrics.map((m) => metricTile(m, true))}
+                  </div>
+                  <p className="mt-2 text-[12px] text-white/86 leading-[1.35]">{active.outputLens}</p>
+                </details>
+              </div>
+            )}
+          </GlassCard>
+        </div>
+      </div>
     </div>
   );
 }
